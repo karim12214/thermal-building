@@ -27,19 +27,19 @@ concrete = {'Conductivity': 0.8,          # W/(m·K)
             'Density': 1750.0,              # kg/m³
             'Specific heat': 900,           # J/(kg⋅K)
             'Width': 0.4,                   # m
-            'Surface': l*L}            # m²
+            'Surface': 5.55}            # m²
 
 insulation = {'Conductivity': 0.023,        # W/(m·K)
               'Density': 30.0,              # kg/m³
               'Specific heat': 1400,        # J/(kg⋅K)
               'Width': 0.02,                # m
-              'Surface': l*L}          # m²
+              'Surface': 5.55}          # m²
 
 glass = {'Conductivity': 0.02,               # W/(m·K)
          'Density': 2500,                   # kg/m³
          'Specific heat': 1210,             # J/(kg⋅K)
          'Width': 0.02,                     # m
-         'Surface': l**2}                   # m²
+         'Surface': 6.48}                   # m²
 door = {'Conductivity': 0.79,
         'Density': 2710,
         'Specific heat': 900,
