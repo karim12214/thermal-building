@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 from thermalbuilding import TC
 import dm4bem
 
-controller = False
+controller = True
 neglect_air_glass_capacity = False
-imposed_time_step = False
+imposed_time_step = True
 Δt = 498    # s, imposed time step
 
 
@@ -21,15 +21,14 @@ imposed_time_step = False
 # =====
 # Thermal circuit
 
-
 # by default TC['G']['q11'] = 0, i.e. Kp -> 0, no controller (free-floating)
 if controller:
-    TC['G']['q9'] = 1e3     # Kp -> ∞, almost perfect controller
-    TC['G']['q20'] = 1e3
-if neglect_air_glass_capacity:
-    TC['C']['θ11'] = TC['C']['θ5'] = 0
+    TC['G']['q9'] = 1000    # Kp -> ∞, almost perfect controller
+    TC['G']['q20'] = 0
+#if neglect_air_glass_capacity:
+   # TC['C']['θ11'] = TC['C']['θ5'] = 0
     # or
-    TC['C'].update({'θ11': 0, 'θ5': 0})
+   # TC['C'].update({'θ11': 0, 'θ5': 0})
 
 
 # State-space
@@ -37,24 +36,25 @@ if neglect_air_glass_capacity:
 
 
 bss = np.zeros(21)        # temperature sources b for steady state
-bss[[0, 1, 7,8,11,12,18,19]] = 10      # outdoor temperature
-bss[[9,20]] = 20, 20            # indoor set-point temperature
+bss[[0,1,7,8,11,12,18,19]] = 10      # outdoor temperature
+bss[[9,20]] = 20          # indoor set-point temperature
 
 fss = np.zeros(12)         # flow-rate sources f for steady state
 
-
+print(bss)
 A = TC['A']
 G = TC['G']
 diag_G = pd.DataFrame(np.diag(G), index=G.index, columns=G.index)
 
 θss = np.linalg.inv(A.T @ diag_G @ A) @ (A.T @ diag_G @ bss + fss)
+#θss= np.full((12, 1), 10)
 print(f'θss = {np.around(θss, 2)} °C')
 
 
 bss = np.zeros(21)        # temperature sources b for steady state
 
 fss = np.zeros(12)         # flow-rate sources f for steady state
-fss[[6]] = 1000
+fss[[5,11]] = 0,1000
 
 θssQ = np.linalg.inv(A.T @ diag_G @ A) @ (A.T @ diag_G @ bss + fss)
 print(f'θssQ = {np.around(θssQ, 2)} °C')
@@ -75,11 +75,10 @@ print(f'yss = {yss:.2f} °C')
 
 
 print(f'Error between DAE and state-space: {abs(θss[5] - yss):.2e} °C')
-print(f'Error between DAE and state-space: {abs(θss[11] - yss):.2e} °C')
 
 
 bT = np.array([0, 0, 0, 0,0,0,0,0,0,0])         # [To, To, To, Tisp]
-fQ = np.array([0, 0, 1000, 0,0,0])      # [Φo, Φi, Qa, Φa]
+fQ = np.array([0, 0, 0, 0,0,1000])      # [Φo, Φi, Qa, Φa]
 uss = np.hstack([bT, fQ])
 
 inv_As = pd.DataFrame(np.linalg.inv(As),
@@ -90,7 +89,7 @@ yssQ = float(yssQ.values[0])
 print(f'yssQ = {yssQ:.2f} °C')
 
 
-print(f'Error between DAE and state-space: {abs(θssQ[6] - yssQ):.2e} °C')
+print(f'Error between DAE and state-space: {abs(θssQ[5] - yssQ):.2e} °C')
 
 
 # Eigenvalues analysis
@@ -133,7 +132,7 @@ Ti_sp = 20 * np.ones(n)     # indoor temperature set point
 Φa = 0 * np.ones(n)         # solar radiation absorbed by the glass
 Qa = Φo = Φi = Φa           # auxiliary heat sources and solar radiation
 
-data = {'To': To, 'Ti_sp': Ti_sp, 'Φo': Φo, 'Φi': Φi, 'Qa': Qa, 'Φa': Φa}
+data = {'To': To, 'Ti_sp': Ti_sp, 'Φo': 0, 'Φi': 0, 'Qa': 0, 'Φa': 0,'Φo': 0, 'Φi': 0, 'Qa': 0, 'Φa': 0}
 input_data_set = pd.DataFrame(data, index=time)
 
 # inputs in time from input_data_set
@@ -175,11 +174,11 @@ plt.show()
 
 
 print('Steady-state indoor temperature obtained with:')
-print(f'- DAE model: {float(θss[6]):.4f} °C')
+print(f'- DAE model: {float(θss[5]):.4f} °C')
 print(f'- state-space model: {float(yss):.4f} °C')
+print("Available columns in y_exp:", y_exp.columns.tolist())
 print(f'- steady-state response to step input: \
-{y_exp["θ6"].tail(1).values[0]:.4f} °C')
-
+{y_exp["θ5"].tail(1).values[0]:.4f} °C')
 
 # Create input_data_set
 # ---------------------
@@ -195,7 +194,7 @@ Ti_sp =  20 * np.ones(n)     # indoor temperature set point
 Φa = 0 * np.ones(n)         # solar radiation absorbed by the glass
 Φo = Φi = Φa                # solar radiation
 Qa = 1000 * np.ones(n)      # auxiliary heat sources
-data = {'To': To, 'Ti_sp': Ti_sp, 'Φo': Φo, 'Φi': Φi, 'Qa': Qa, 'Φa': Φa}
+data = {'To': To, 'Ti_sp': Ti_sp, 'Φo': Φo, 'Φi': Φi, 'Qa': Qa, 'Φa': Φa,'Φo': Φo, 'Φi':Φi , 'Qa': Qa, 'Φa': Φa}
 input_data_set = pd.DataFrame(data, index=time)
 
 # Get inputs in time from input_data_set
@@ -231,10 +230,10 @@ plt.show()
 
 
 print('Steady-state indoor temperature obtained with:')
-print(f'- DAE model: {float(θssQ[6]):.4f} °C')
+print(f'- DAE model: {float(θssQ[5]):.4f} °C')
 print(f'- state-space model: {float(yssQ):.4f} °C')
 print(f'- steady-state response to step input: \
-{y_exp["θ6"].tail(1).values[0]:.4f} °C')
+{y_exp["θ5"].tail(1).values[0]:.4f} °C')
 
 
 #In cell [2], consider:
@@ -271,8 +270,8 @@ if controller:
     TC['G']['q20'] = 1e3
 
 if controller:
-    TC['G']['q11'] = 1e3        # Kp -> ∞, almost perfect controller
-    TC['G']['q20'] = 1e3
+    TC['G']['q11'] = 1e5        # Kp -> ∞, almost perfect controller
+    TC['G']['q20'] = 1e5
 
 
     
