@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-#import control as ctrl
+import control as ctrl
 import time
-from thermalbuilding import TC
+
 import dm4bem
 
 controller = True
@@ -21,7 +21,7 @@ imposed_time_step = False
 # MODEL
 # =====
 # Thermal circuits
-#TC = dm4bem.file2TC('./model/TC.csv', name='', auto_number=False)
+TC = dm4bem.file2TC('./model/TC.csv', name='', auto_number=False)
 
 # by default  0 # Kp -> 0, no controller (free-floating
 if controller:
@@ -30,7 +30,9 @@ if controller:
 if neglect_air_capacity:
     TC['C']['θ1'] = 0
     TC['C']['θ3'] = 0        #
-
+if neglect_glass_capacity:
+    TC['C']['θ7'] = 0
+    TC['C']['θ9'] = 0       # 
 
 # State-space
 [As, Bs, Cs, Ds, us] = dm4bem.tc2ss(TC)
@@ -86,23 +88,20 @@ TC['G']['q9'] = Kp1      # room 1
 TC['G']['q20'] = Kp2      # room 2
 
 # Surface areas (assumed toy house with 9 m² and 20 m² respectively)
-S1 = S2 = 5.55     # m², Room  and 2
+S1 = S2 = 9     # m², Room  and 2
 
 
 # HVAC heat flux density (W/m²) for Room 1 only
 q_HVAC1 = Kp1 * (u['q9'] - y['θ5']) / S1
 
-
 print(q_HVAC1)
-
 
 # Combine data for Room 1 only
 data = pd.DataFrame({
     'To': input_data_set['To'],     # outdoor temperature
     'θi1': y['θ5'],                 # Room 1 indoor temperature
     'Etot': input_data_set['Etot'], # total solar radiation
-    'q_HVAC1': q_HVAC1,             # HVAC power density for Room 1
-    
+    'q_HVAC1': q_HVAC1              # HVAC power density for Room 1
 })
 
 # Plotting for Room 1 only
