@@ -125,14 +125,14 @@ Kp2 = 0
 
 
 # glass: convection outdoor & conduction
-Ggs = float(1 / (1 / Gg.loc['h', 'out'] + 1 / (G_cd['Glass']) + 1 / Gg.loc['h','in']))
-Ggsi = float (1 / (1 / Gg.loc['h', 'in'] + 1 / (G_cd['Glass']) + 1 / Gg.loc['h','in']))
+Ggs = float(1 / (1 / Gg.loc['h', 'out'] + 6.48 + 1 / Gg.loc['h','in']))
+Ggsi = float (1 / (1 / Gg.loc['h', 'in'] + 6.48 + 1 / Gg.loc['h','in']))
 #wall: convection outdoor & conduction 
 Gws = float(1/ (1 / Gw.loc['h', 'out'] + 1 / (G_cd['Layer_out'])))
 # isolant: conduction and indoor convection
 Giss = Gws = float(1/ (1 / Gw.loc['h', 'in'] + 1 / (G_cd['Layer_in'])))
 #door: convection outdoor & conduction & indoor convection
-Gds = float(1/ (1 / Gd.loc['h','out']  +0.79+ 1 / Gd.loc['h','in']))
+Gds = float(1/ (1 / Gd.loc['h','out']  +0.79*2.35*1.15+ 1 / Gd.loc['h','in']))
 
 
 
@@ -190,10 +190,10 @@ pd.DataFrame(A, index=q, columns=θ)
 G = np.array(np.hstack(
     [Gds,
      Gw['out'],
-     G_cd['Layer_out'],
-     G_cd['Layer_out'],
-     G_cd['Layer_in'],
-     G_cd['Layer_in'],
+     2*G_cd['Layer_out'],
+     2*G_cd['Layer_out'],
+     2*G_cd['Layer_in'],
+     2*G_cd['Layer_in'],
      Gis['in'],
      Ggs,
      Gv1,
@@ -201,10 +201,10 @@ G = np.array(np.hstack(
      Ggsi,
      Gds,
      Gw['out'],
-     G_cd['Layer_out'],
-     G_cd['Layer_out'],
-     G_cd['Layer_in'],
-     G_cd['Layer_in'],
+     2*G_cd['Layer_out'],
+     2*G_cd['Layer_out'],
+     2*G_cd['Layer_in'],
+     2*G_cd['Layer_in'],
      Gis['in'],
      Ggs,
      Gv2,
@@ -238,7 +238,7 @@ f = pd.Series(['Φo', 0, 0, 0, 'Φi', 'Qa', 'Φo', 0,0,0,'Φi','Qa'],
 
 
 y = np.zeros(12)         # nodes
-y[[10]] = 1              # nodes (temperatures) of interest
+y[[5]] = 1    # nodes (temperatures) of interest
 pd.DataFrame(y, index=θ)
 
 
